@@ -56,3 +56,19 @@ git push origin main --force
 **Summary:** Right-clicking a project in the sidebar now shows a "Customize project…" option that opens a dialog with a 12-color palette. The chosen color is stored in `localStorage` (client settings) and shown as a colored dot replacing the default favicon in the sidebar.
 
 **Potential rebase conflicts:** Upstream changes to `ClientSettings`/`ClientSettingsPatch` in `settings.ts`, or changes to `Sidebar.tsx` project context-menu/dialogs, will conflict.
+
+---
+
+### Native OS notifications on thread completion
+**Commit:** `d17ca70`
+**Files added:**
+- `apps/web/src/hooks/useThreadCompletionNotifications.ts`
+
+**Files modified:**
+- `packages/contracts/src/settings.ts` — added `notifyOnThreadCompletion` boolean to `ClientSettings`/`ClientSettingsPatch`
+- `apps/web/src/routes/__root.tsx` — mounts `ThreadCompletionNotificationsBootstrap` when authenticated
+- `apps/web/src/components/settings/SettingsPanels.tsx` — toggle in the General settings panel
+
+**Summary:** Opt-in setting (Settings → General → "Thread completion notifications") that fires a native OS notification whenever a thread transitions from Working to any settled state (completed, awaiting input, pending approval, plan ready). Uses `favicon-32x32.png` as the notification icon. Clicking the notification focuses the window. Permission is requested automatically on first enable.
+
+**Potential rebase conflicts:** Upstream changes to `ClientSettings`/`ClientSettingsPatch` in `settings.ts`, or to `__root.tsx` or `SettingsPanels.tsx`, will conflict.
