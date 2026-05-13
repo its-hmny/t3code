@@ -40,3 +40,19 @@ git push origin main --force
 **Summary:** Adds GitHub Copilot as a first-class provider, including OAuth-based authentication, ACP protocol support, model enumeration, and full UI integration alongside the existing Codex and Claude drivers.
 
 **Potential rebase conflicts:** Any upstream changes to `builtInDrivers.ts`, `model.ts`, `settings.ts`, or the shared web settings/model-picker components will likely conflict and need manual merging.
+
+---
+
+### Per-project color customization
+**Commit:** `9d6f2b9`
+**Files added:** —
+**Files modified:**
+- `packages/contracts/src/settings.ts` — added `ProjectCustomization` schema and `projectCustomizations` record to `ClientSettings`/`ClientSettingsPatch`
+- `apps/web/src/components/ProjectFavicon.tsx` — renders a colored dot when a customization is present
+- `apps/web/src/components/Sidebar.tsx` — color palette, "Customize project…" context-menu entry, and customize dialog
+- `apps/desktop/src/settings/DesktopClientSettings.test.ts` — updated fixture
+- `apps/web/src/localApi.test.ts` — updated fixtures
+
+**Summary:** Right-clicking a project in the sidebar now shows a "Customize project…" option that opens a dialog with a 12-color palette. The chosen color is stored in `localStorage` (client settings) and shown as a colored dot replacing the default favicon in the sidebar.
+
+**Potential rebase conflicts:** Upstream changes to `ClientSettings`/`ClientSettingsPatch` in `settings.ts`, or changes to `Sidebar.tsx` project context-menu/dialogs, will conflict.
