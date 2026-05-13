@@ -143,6 +143,9 @@ export const ClientSettingsSchema = Schema.Struct({
     TrimmedNonEmptyString,
     ProjectCustomization,
   ).pipe(Schema.withDecodingDefault(Effect.succeed({}))),
+  notifyOnThreadCompletion: Schema.Boolean.pipe(
+    Schema.withDecodingDefault(Effect.succeed(false)),
+  ),
 });
 export type ClientSettings = typeof ClientSettingsSchema.Type;
 
@@ -625,5 +628,6 @@ export const ClientSettingsPatch = Schema.Struct({
   projectCustomizations: Schema.optionalKey(
     Schema.Record(TrimmedNonEmptyString, ProjectCustomization),
   ),
+  notifyOnThreadCompletion: Schema.optionalKey(Schema.Boolean),
 });
 export type ClientSettingsPatch = typeof ClientSettingsPatch.Type;

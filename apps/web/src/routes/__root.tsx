@@ -31,6 +31,7 @@ import {
 import { resolveAndPersistPreferredEditor } from "../editorPreferences";
 import { readLocalApi } from "../localApi";
 import { useSettings } from "../hooks/useSettings";
+import { useThreadCompletionNotifications } from "../hooks/useThreadCompletionNotifications";
 import {
   deriveLogicalProjectKeyFromSettings,
   derivePhysicalProjectKeyFromPath,
@@ -141,6 +142,7 @@ function RootRouteView() {
         <HostedStaticEnvironmentBootstrap />
         {primaryEnvironmentAuthenticated ? <EventRouter /> : null}
         {primaryEnvironmentAuthenticated ? <ProviderUpdateLaunchNotification /> : null}
+        {primaryEnvironmentAuthenticated ? <ThreadCompletionNotificationsBootstrap /> : null}
         {primaryEnvironmentAuthenticated ? <WebSocketConnectionCoordinator /> : null}
         {primaryEnvironmentAuthenticated ? <SlowRpcAckToastCoordinator /> : null}
         {primaryEnvironmentAuthenticated ? (
@@ -176,6 +178,12 @@ function HostedStaticEnvironmentBootstrap() {
     useStore.getState().setActiveEnvironmentId(firstSavedEnvironment.environmentId);
   }, [savedEnvironmentCount]);
 
+  return null;
+}
+
+function ThreadCompletionNotificationsBootstrap() {
+  const enabled = useSettings((s) => s.notifyOnThreadCompletion);
+  useThreadCompletionNotifications(enabled);
   return null;
 }
 

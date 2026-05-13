@@ -29,6 +29,7 @@ const clientSettings: ClientSettings = {
   sidebarThreadPreviewCount: 6,
   timestampFormat: "24-hour",
   projectCustomizations: {},
+  notifyOnThreadCompletion: false,
 };
 
 const decodeClientSettingsJson = Schema.decodeEffect(Schema.fromJsonString(ClientSettingsSchema));

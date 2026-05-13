@@ -698,6 +698,20 @@ export function GeneralSettingsPanel() {
         />
 
         <SettingsRow
+          title="Thread completion notifications"
+          description="Show a native OS notification when a thread finishes working or needs your input."
+          control={
+            <Switch
+              checked={settings.notifyOnThreadCompletion}
+              onCheckedChange={(checked) =>
+                updateSettings({ notifyOnThreadCompletion: Boolean(checked) })
+              }
+              aria-label="Notify when a thread completes"
+            />
+          }
+        />
+
+        <SettingsRow
           title="New threads"
           description="Pick the default workspace mode for newly created draft threads."
           resetAction={
