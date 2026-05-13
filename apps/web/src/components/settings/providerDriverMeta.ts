@@ -1,12 +1,20 @@
 import {
   ClaudeSettings,
   CodexSettings,
+  CopilotSettings,
   CursorSettings,
   OpenCodeSettings,
   ProviderDriverKind,
 } from "@t3tools/contracts";
 import type * as Schema from "effect/Schema";
-import { ClaudeAI, CursorIcon, type Icon, OpenAI, OpenCodeIcon } from "../Icons";
+import {
+  ClaudeAI,
+  CursorIcon,
+  GithubCopilotIcon,
+  type Icon,
+  OpenAI,
+  OpenCodeIcon,
+} from "../Icons";
 
 type ProviderSettingsSchema = {
   readonly fields: Readonly<Record<string, Schema.Top>>;
@@ -33,38 +41,48 @@ export interface ProviderClientDefinition {
   readonly badgeLabel?: string;
 }
 
-export const PROVIDER_CLIENT_DEFINITIONS: readonly ProviderClientDefinition[] = [
-  {
-    value: ProviderDriverKind.make("codex"),
-    label: "Codex",
-    icon: OpenAI,
-    settingsSchema: CodexSettings,
-  },
-  {
-    value: ProviderDriverKind.make("claudeAgent"),
-    label: "Claude",
-    icon: ClaudeAI,
-    settingsSchema: ClaudeSettings,
-  },
-  {
-    value: ProviderDriverKind.make("cursor"),
-    label: "Cursor",
-    icon: CursorIcon,
-    badgeLabel: "Early Access",
-    settingsSchema: CursorSettings,
-  },
-  {
-    value: ProviderDriverKind.make("opencode"),
-    label: "OpenCode",
-    icon: OpenCodeIcon,
-    settingsSchema: OpenCodeSettings,
-  },
-];
+export const PROVIDER_CLIENT_DEFINITIONS: readonly ProviderClientDefinition[] =
+  [
+    {
+      value: ProviderDriverKind.make("codex"),
+      label: "Codex",
+      icon: OpenAI,
+      settingsSchema: CodexSettings,
+    },
+    {
+      value: ProviderDriverKind.make("claudeAgent"),
+      label: "Claude",
+      icon: ClaudeAI,
+      settingsSchema: ClaudeSettings,
+    },
+    {
+      value: ProviderDriverKind.make("cursor"),
+      label: "Cursor",
+      icon: CursorIcon,
+      badgeLabel: "Early Access",
+      settingsSchema: CursorSettings,
+    },
+    {
+      value: ProviderDriverKind.make("opencode"),
+      label: "OpenCode",
+      icon: OpenCodeIcon,
+      settingsSchema: OpenCodeSettings,
+    },
+    {
+      value: ProviderDriverKind.make("copilot"),
+      label: "GitHub Copilot",
+      icon: GithubCopilotIcon,
+      settingsSchema: CopilotSettings,
+    },
+  ];
 
 export const PROVIDER_CLIENT_DEFINITION_BY_VALUE: Partial<
   Record<ProviderDriverKind, ProviderClientDefinition>
 > = Object.fromEntries(
-  PROVIDER_CLIENT_DEFINITIONS.map((definition) => [definition.value, definition]),
+  PROVIDER_CLIENT_DEFINITIONS.map((definition) => [
+    definition.value,
+    definition,
+  ]),
 );
 
 export const DRIVER_OPTIONS = PROVIDER_CLIENT_DEFINITIONS;
@@ -76,7 +94,9 @@ export type DriverOption = ProviderClientDefinition;
  * Returns `undefined` for fork / unknown drivers so callers can decide how
  * to render them — typically by falling back to a generic card.
  */
-export function getDriverOption(driver: ProviderDriverKind | undefined): DriverOption | undefined {
+export function getDriverOption(
+  driver: ProviderDriverKind | undefined,
+): DriverOption | undefined {
   if (driver === undefined) return undefined;
   return PROVIDER_CLIENT_DEFINITION_BY_VALUE[driver];
 }
