@@ -56,6 +56,7 @@ import { Link, useLocation, useNavigate, useParams, useRouter } from "@tanstack/
 import {
   MAX_SIDEBAR_THREAD_PREVIEW_COUNT,
   MIN_SIDEBAR_THREAD_PREVIEW_COUNT,
+  type ProjectCustomization,
   type SidebarProjectSortOrder,
   type SidebarThreadPreviewCount,
   type SidebarThreadSortOrder,
@@ -203,6 +204,22 @@ const SIDEBAR_SORT_LABELS: Record<SidebarProjectSortOrder, string> = {
   created_at: "Created at",
   manual: "Manual",
 };
+
+export const PROJECT_CUSTOMIZATION_COLORS: ReadonlyArray<{ label: string; value: string | null }> =
+  [
+    { label: "Default", value: null },
+    { label: "Red", value: "#ef4444" },
+    { label: "Orange", value: "#f97316" },
+    { label: "Amber", value: "#f59e0b" },
+    { label: "Lime", value: "#84cc16" },
+    { label: "Green", value: "#22c55e" },
+    { label: "Teal", value: "#14b8a6" },
+    { label: "Sky", value: "#38bdf8" },
+    { label: "Blue", value: "#3b82f6" },
+    { label: "Violet", value: "#8b5cf6" },
+    { label: "Pink", value: "#ec4899" },
+    { label: "Rose", value: "#f43f5e" },
+  ];
 const SIDEBAR_THREAD_SORT_LABELS: Record<SidebarThreadSortOrder, string> = {
   updated_at: "Last user message",
   created_at: "Created at",
@@ -943,6 +960,9 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
     (settings) => settings.defaultThreadEnvMode,
   );
   const projectGroupingSettings = useSettings(selectProjectGroupingSettings);
+  const projectCustomizations = useSettings(
+    (settings) => settings.projectCustomizations as Record<string, ProjectCustomization>,
+  );
   const { updateSettings } = useUpdateSettings();
   const sidebarThreadPreviewCount = useSettings<SidebarThreadPreviewCount>(
     (settings) => settings.sidebarThreadPreviewCount,
@@ -1069,6 +1089,9 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
   const [projectGroupingSelection, setProjectGroupingSelection] = useState<
     SidebarProjectGroupingMode | "inherit"
   >("inherit");
+  const [projectCustomizeTarget, setProjectCustomizeTarget] =
+    useState<SidebarProjectGroupMember | null>(null);
+  const [projectCustomizeColor, setProjectCustomizeColor] = useState<string | null>(null);
   const renamingCommittedRef = useRef(false);
   const renamingInputRef = useRef<HTMLInputElement | null>(null);
   const confirmArchiveButtonRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -1097,6 +1120,13 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
     }
     return counts;
   }, [memberProjectByScopedKey, project.memberProjects, projectThreads]);
+
+  // Customization for the representative member — drives the sidebar favicon / color dot.
+  const representativeCustomization = useMemo<ProjectCustomization | undefined>(() => {
+    const rep = project.memberProjects[0];
+    if (!rep) return undefined;
+    return projectCustomizations[rep.physicalProjectKey];
+  }, [project.memberProjects, projectCustomizations]);
 
   const { projectStatus, visibleProjectThreads, orderedProjectThreadKeys } = useMemo(() => {
     const lastVisitedAtByThreadKey = new Map(
@@ -1287,6 +1317,38 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
     [projectGroupingSettings.sidebarProjectGroupingOverrides],
   );
 
+  const openProjectCustomizeDialog = useCallback(
+    (member: SidebarProjectGroupMember) => {
+      const existing = projectCustomizations[member.physicalProjectKey];
+      setProjectCustomizeTarget(member);
+      setProjectCustomizeColor(existing?.color ?? null);
+    },
+    [projectCustomizations],
+  );
+
+  const closeProjectCustomizeDialog = useCallback(() => {
+    setProjectCustomizeTarget(null);
+    setProjectCustomizeColor(null);
+  }, []);
+
+  const saveProjectCustomization = useCallback(() => {
+    if (!projectCustomizeTarget) return;
+    const next: Record<string, ProjectCustomization> = { ...projectCustomizations };
+    if (!projectCustomizeColor) {
+      delete next[projectCustomizeTarget.physicalProjectKey];
+    } else {
+      next[projectCustomizeTarget.physicalProjectKey] = { color: projectCustomizeColor };
+    }
+    updateSettings({ projectCustomizations: next });
+    closeProjectCustomizeDialog();
+  }, [
+    closeProjectCustomizeDialog,
+    projectCustomizations,
+    projectCustomizeColor,
+    projectCustomizeTarget,
+    updateSettings,
+  ]);
+
   const removeProject = useCallback(
     async (member: SidebarProjectGroupMember, options: { force?: boolean } = {}): Promise<void> => {
       const memberProjectRef = scopeProjectRef(member.environmentId, member.id);
@@ -1434,7 +1496,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
 
         const actionHandlers = new Map<string, () => Promise<void> | void>();
         const makeLeaf = (
-          action: "rename" | "grouping" | "copy-path" | "delete",
+          action: "rename" | "grouping" | "customize" | "copy-path" | "delete",
           member: SidebarProjectGroupMember,
           options?: {
             destructive?: boolean;
@@ -1449,6 +1511,9 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
                 return;
               case "grouping":
                 openProjectGroupingDialog(member);
+                return;
+              case "customize":
+                openProjectCustomizeDialog(member);
                 return;
               case "copy-path":
                 copyPathToClipboard(member.cwd, { path: member.cwd });
@@ -1467,7 +1532,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         };
 
         const buildTargetedItem = (
-          action: "rename" | "grouping" | "copy-path" | "delete",
+          action: "rename" | "grouping" | "customize" | "copy-path" | "delete",
           label: string,
           options?: {
             destructive?: boolean;
@@ -1500,6 +1565,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         const clicked = await api.contextMenu.show(
           [
             buildTargetedItem("rename", "Rename project"),
+            buildTargetedItem("customize", "Customize project…"),
             buildTargetedItem("grouping", "Project grouping…"),
             buildTargetedItem("copy-path", "Copy Project Path"),
             buildTargetedItem("delete", "Remove project", {
@@ -1522,6 +1588,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
     [
       copyPathToClipboard,
       handleRemoveProject,
+      openProjectCustomizeDialog,
       openProjectGroupingDialog,
       openProjectRenameDialog,
       project.groupedProjectCount,
@@ -2015,7 +2082,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
               }`}
             />
           )}
-          <ProjectFavicon environmentId={project.environmentId} cwd={project.cwd} />
+          <ProjectFavicon environmentId={project.environmentId} cwd={project.cwd} {...(representativeCustomization !== undefined ? { customization: representativeCustomization } : {})} />
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <span className="truncate text-xs font-medium text-foreground/90">
               {project.displayName}
@@ -2223,6 +2290,67 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
               Cancel
             </Button>
             <Button onClick={saveProjectGroupingPreference}>Save</Button>
+          </DialogFooter>
+        </DialogPopup>
+      </Dialog>
+
+      <Dialog
+        open={projectCustomizeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeProjectCustomizeDialog();
+          }
+        }}
+      >
+        <DialogPopup className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Customize project</DialogTitle>
+            <DialogDescription>
+              {projectCustomizeTarget
+                ? `Set a color and icon for ${projectCustomizeTarget.cwd}.`
+                : "Set a color and icon for this project."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogPanel className="space-y-5">
+            <div className="grid gap-2">
+              <span className="text-xs font-medium text-foreground">Color</span>
+              <div className="flex flex-wrap gap-2">
+                {PROJECT_CUSTOMIZATION_COLORS.map(({ label, value }) => (
+                  <button
+                    key={value ?? "default"}
+                    type="button"
+                    aria-label={label}
+                    title={label}
+                    onClick={() => setProjectCustomizeColor(value)}
+                    className={`size-6 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                      projectCustomizeColor === value
+                        ? "border-foreground scale-110"
+                        : "border-transparent hover:border-muted-foreground/50"
+                    }`}
+                    style={
+                      value
+                        ? { backgroundColor: value }
+                        : { backgroundColor: "transparent", border: "2px dashed currentColor", color: "var(--muted-foreground)" }
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+            {projectCustomizeTarget && projectCustomizations[projectCustomizeTarget.physicalProjectKey]?.color ? (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                onClick={() => setProjectCustomizeColor(null)}
+              >
+                Clear customization
+              </button>
+            ) : null}
+          </DialogPanel>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeProjectCustomizeDialog}>
+              Cancel
+            </Button>
+            <Button onClick={saveProjectCustomization}>Save</Button>
           </DialogFooter>
         </DialogPopup>
       </Dialog>

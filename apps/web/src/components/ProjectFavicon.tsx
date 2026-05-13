@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import type { ProjectCustomization } from "@t3tools/contracts/settings";
 import { FolderIcon } from "lucide-react";
 import { useState } from "react";
 import { resolveEnvironmentHttpUrl } from "../environments/runtime";
@@ -9,7 +10,25 @@ export function ProjectFavicon(input: {
   environmentId: EnvironmentId;
   cwd: string;
   className?: string;
+  customization?: ProjectCustomization;
 }) {
+  const { customization } = input;
+
+  // Custom color only: colored dot swatch instead of the favicon.
+  if (customization?.color) {
+    return (
+      <span
+        className={`size-3.5 shrink-0 flex items-center justify-center ${input.className ?? ""}`}
+        aria-hidden="true"
+      >
+        <span
+          className="size-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: customization.color }}
+        />
+      </span>
+    );
+  }
+
   const src = (() => {
     try {
       return resolveEnvironmentHttpUrl({

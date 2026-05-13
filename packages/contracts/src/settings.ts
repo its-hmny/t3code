@@ -13,6 +13,13 @@ import {
   ProviderInstanceId,
 } from "./providerInstance.ts";
 
+// ── Project Customization ─────────────────────────────────────
+
+export const ProjectCustomization = Schema.Struct({
+  color: Schema.optional(TrimmedNonEmptyString),
+});
+export type ProjectCustomization = typeof ProjectCustomization.Type;
+
 // ── Client Settings (local-only) ───────────────────────────────
 
 export const TimestampFormat = Schema.Literals([
@@ -132,6 +139,10 @@ export const ClientSettingsSchema = Schema.Struct({
   timestampFormat: TimestampFormat.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_TIMESTAMP_FORMAT)),
   ),
+  projectCustomizations: Schema.Record(
+    TrimmedNonEmptyString,
+    ProjectCustomization,
+  ).pipe(Schema.withDecodingDefault(Effect.succeed({}))),
 });
 export type ClientSettings = typeof ClientSettingsSchema.Type;
 
@@ -611,5 +622,8 @@ export const ClientSettingsPatch = Schema.Struct({
   sidebarThreadSortOrder: Schema.optionalKey(SidebarThreadSortOrder),
   sidebarThreadPreviewCount: Schema.optionalKey(SidebarThreadPreviewCount),
   timestampFormat: Schema.optionalKey(TimestampFormat),
+  projectCustomizations: Schema.optionalKey(
+    Schema.Record(TrimmedNonEmptyString, ProjectCustomization),
+  ),
 });
 export type ClientSettingsPatch = typeof ClientSettingsPatch.Type;
