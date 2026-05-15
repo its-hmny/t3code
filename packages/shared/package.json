@@ -1,6 +1,6 @@
 {
   "name": "@t3tools/shared",
-  "private": true,
+  "private": false,
   "type": "module",
   "exports": {
     "./model": {
