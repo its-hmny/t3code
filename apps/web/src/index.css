@@ -84,63 +84,65 @@
 }
 
 :root {
+  /* Ayu Light theme — https://github.com/ayu-theme/ayu-colors */
   color-scheme: light;
   --radius: 0.625rem;
-  --background: var(--color-white);
-  --app-chrome-background: var(--background);
-  --foreground: var(--color-neutral-800);
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-800);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-800);
-  --primary: oklch(0.488 0.217 264);
-  --primary-foreground: var(--color-white);
-  --secondary: --alpha(var(--color-black) / 4%);
-  --secondary-foreground: var(--color-neutral-800);
-  --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-black));
-  --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-neutral-800);
-  --destructive: var(--color-red-500);
-  --border: --alpha(var(--color-black) / 8%);
-  --input: --alpha(var(--color-black) / 10%);
-  --ring: oklch(0.488 0.217 264);
-  --destructive-foreground: var(--color-red-700);
-  --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-700);
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-700);
-  --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-700);
+  --background: #fcfcfc;
+  --app-chrome-background: #f8f9fa;
+  --foreground: #5c6166;
+  --card: #ffffff;
+  --card-foreground: #5c6166;
+  --popover: #ffffff;
+  --popover-foreground: #5c6166;
+  --primary: #f29718;
+  --primary-foreground: #ffffff;
+  --secondary: #ebeef0;
+  --secondary-foreground: #5c6166;
+  --muted: #ebeef0;
+  --muted-foreground: #828e9f;
+  --accent: #ebeef0;
+  --accent-foreground: #5c6166;
+  --destructive: #e65050;
+  --border: #6b7d8f1f;
+  --input: #6b7d8f1f;
+  --ring: #f29718;
+  --destructive-foreground: #e65050;
+  --info: #22a4e6;
+  --info-foreground: #22a4e6;
+  --success: #86b300;
+  --success-foreground: #86b300;
+  --warning: #eba400;
+  --warning-foreground: #e59645;
 
   @variant dark {
+    /* Ayu Dark theme — https://github.com/ayu-theme/ayu-colors */
     color-scheme: dark;
-    --background: color-mix(in srgb, var(--color-neutral-950) 95%, var(--color-white));
-    --app-chrome-background: var(--background);
-    --foreground: var(--color-neutral-100);
-    --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
-    --card-foreground: var(--color-neutral-100);
-    --popover: color-mix(in srgb, var(--background) 98%, var(--color-white));
-    --popover-foreground: var(--color-neutral-100);
-    --primary: oklch(0.588 0.217 264);
-    --primary-foreground: var(--color-white);
-    --secondary: --alpha(var(--color-white) / 4%);
-    --secondary-foreground: var(--color-neutral-100);
-    --muted: --alpha(var(--color-white) / 4%);
-    --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-white));
-    --accent: --alpha(var(--color-white) / 4%);
-    --accent-foreground: var(--color-neutral-100);
-    --destructive: color-mix(in srgb, var(--color-red-500) 90%, var(--color-white));
-    --border: --alpha(var(--color-white) / 6%);
-    --input: --alpha(var(--color-white) / 8%);
-    --ring: oklch(0.588 0.217 264);
-    --destructive-foreground: var(--color-red-400);
-    --info: var(--color-blue-500);
-    --info-foreground: var(--color-blue-400);
-    --success: var(--color-emerald-500);
-    --success-foreground: var(--color-emerald-400);
-    --warning: var(--color-amber-500);
-    --warning-foreground: var(--color-amber-400);
+    --background: #10141c;
+    --app-chrome-background: #0d1017;
+    --foreground: #bfbdb6;
+    --card: #141821;
+    --card-foreground: #bfbdb6;
+    --popover: #0f131a;
+    --popover-foreground: #bfbdb6;
+    --primary: #e6b450;
+    --primary-foreground: #0d1017;
+    --secondary: #1b1f29;
+    --secondary-foreground: #bfbdb6;
+    --muted: #1b1f29;
+    --muted-foreground: #5a6378;
+    --accent: #1b1f29;
+    --accent-foreground: #bfbdb6;
+    --destructive: #d95757;
+    --border: #1b1f29;
+    --input: #1b1f29;
+    --ring: #e6b450;
+    --destructive-foreground: #f07178;
+    --info: #39bae6;
+    --info-foreground: #59c2ff;
+    --success: #aad94c;
+    --success-foreground: #aad94c;
+    --warning: #ffb454;
+    --warning-foreground: #e6c08a;
   }
 }
 
@@ -226,11 +228,11 @@ code {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: #1b1f29;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: #252a36;
 }
 
 .turn-chip-strip {
@@ -588,9 +590,9 @@ label:has(> select#reasoning-effort) select {
 }
 
 .dark .model-picker-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: #1b1f29;
 }
 
 .dark .model-picker-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #252a36;
 }
