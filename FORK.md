@@ -72,3 +72,33 @@ git push origin main --force
 **Summary:** Opt-in setting (Settings → General → "Thread completion notifications") that fires a native OS notification whenever a thread transitions from Working to any settled state (completed, awaiting input, pending approval, plan ready). Uses `favicon-32x32.png` as the notification icon. Clicking the notification focuses the window. Permission is requested automatically on first enable.
 
 **Potential rebase conflicts:** Upstream changes to `ClientSettings`/`ClientSettingsPatch` in `settings.ts`, or to `__root.tsx` or `SettingsPanels.tsx`, will conflict.
+
+---
+
+### Compilation fixes after upstream rebase
+**Commit:** `ba02e6a5`
+**Files added:**
+- `packages/shared/src/index.ts` — barrel export for shared utilities
+
+**Files modified:**
+- `package.json` — pinned `turbo` to `2.9.14` to fix build compatibility
+- `packages/shared/package.json` — set `private: false` so workspace resolution works
+- `packages/client-runtime/src/advertisedEndpoint.test.ts` — updated import to use package path instead of relative file path
+
+**Summary:** Patches introduced during rebase that caused frontend compilation to fail. Pinning turbo and fixing the shared package visibility resolved the build errors.
+
+**Potential rebase conflicts:** If upstream changes `turbo` version or `packages/shared/package.json`, this may need revisiting.
+
+---
+
+### Ayu theme (light + dark)
+**Commits:** `78851f6d`
+**Files modified:**
+- `apps/web/src/index.css` — replaced the default neutral palette with Ayu colors for both `:root` (light) and `@variant dark`
+
+**Summary:** Applies the [Ayu color scheme](https://github.com/ayu-theme/ayu-colors) to both light and dark modes.
+- **Dark:** background `#0d1017`/`#10141c`, foreground `#bfbdb6`, golden accent `#e6b450`
+- **Light:** background `#f8f9fa`/`#fcfcfc`, foreground `#5c6166`, orange accent `#f29718`
+- Semantic tokens (info, success, warning, destructive) mapped to their Ayu palette equivalents. Light theme unchanged visually for non-dark users.
+
+**Potential rebase conflicts:** Any upstream changes to `apps/web/src/index.css` (theme variables) will conflict directly.
