@@ -18,8 +18,10 @@ git push origin main --force
 ## Changes
 
 ### GitHub Copilot provider integration
+
 **Commits:** `7f7c8ac` · `e77bfa4` · `2e09c83`
 **Files added:**
+
 - `apps/server/src/provider/Drivers/CopilotDriver.ts`
 - `apps/server/src/provider/Layers/CopilotAdapter.ts`
 - `apps/server/src/provider/Layers/CopilotProvider.ts`
@@ -28,6 +30,7 @@ git push origin main --force
 - `apps/server/src/textGeneration/CopilotTextGeneration.ts`
 
 **Files modified:**
+
 - `packages/contracts/src/model.ts` — added Copilot model types
 - `packages/contracts/src/settings.ts` — added Copilot provider schemas
 - `apps/server/src/provider/builtInDrivers.ts` — registered `CopilotDriver`
@@ -44,9 +47,11 @@ git push origin main --force
 ---
 
 ### Per-project color customization
+
 **Commit:** `9d6f2b9`
 **Files added:** —
 **Files modified:**
+
 - `packages/contracts/src/settings.ts` — added `ProjectCustomization` schema and `projectCustomizations` record to `ClientSettings`/`ClientSettingsPatch`
 - `apps/web/src/components/ProjectFavicon.tsx` — renders a colored dot when a customization is present
 - `apps/web/src/components/Sidebar.tsx` — color palette, "Customize project…" context-menu entry, and customize dialog
@@ -60,11 +65,14 @@ git push origin main --force
 ---
 
 ### Native OS notifications on thread completion
+
 **Commit:** `d17ca70`
 **Files added:**
+
 - `apps/web/src/hooks/useThreadCompletionNotifications.ts`
 
 **Files modified:**
+
 - `packages/contracts/src/settings.ts` — added `notifyOnThreadCompletion` boolean to `ClientSettings`/`ClientSettingsPatch`
 - `apps/web/src/routes/__root.tsx` — mounts `ThreadCompletionNotificationsBootstrap` when authenticated
 - `apps/web/src/components/settings/SettingsPanels.tsx` — toggle in the General settings panel
@@ -76,11 +84,14 @@ git push origin main --force
 ---
 
 ### Compilation fixes after upstream rebase
+
 **Commit:** `ba02e6a5`
 **Files added:**
+
 - `packages/shared/src/index.ts` — barrel export for shared utilities
 
 **Files modified:**
+
 - `package.json` — pinned `turbo` to `2.9.14` to fix build compatibility
 - `packages/shared/package.json` — set `private: false` so workspace resolution works
 - `packages/client-runtime/src/advertisedEndpoint.test.ts` — updated import to use package path instead of relative file path
@@ -91,12 +102,29 @@ git push origin main --force
 
 ---
 
+### Dynamic browser tab title + remove stage label
+
+**Commits:** `0b190409` · `c96be589`
+**Files modified:**
+
+- `apps/web/src/routes/_chat.$environmentId.$threadId.tsx` — sets `document.title` to `"<ProjectName> — T3 Code"` when a thread is open, resets to default on unmount
+- `apps/web/src/branding.ts` — removed the stage label `(Alpha)` from `APP_DISPLAY_NAME`; the app now simply shows "T3 Code"
+
+**Summary:** The browser tab title now reflects the currently open project, making it easy to distinguish tabs across windows and desktops. The `(Alpha)` suffix has also been dropped from the app name.
+
+**Potential rebase conflicts:** Unlikely — these are isolated to `branding.ts` and the thread route component.
+
+---
+
 ### Ayu theme (light + dark)
+
 **Commits:** `78851f6d`
 **Files modified:**
+
 - `apps/web/src/index.css` — replaced the default neutral palette with Ayu colors for both `:root` (light) and `@variant dark`
 
 **Summary:** Applies the [Ayu color scheme](https://github.com/ayu-theme/ayu-colors) to both light and dark modes.
+
 - **Dark:** background `#0d1017`/`#10141c`, foreground `#bfbdb6`, golden accent `#e6b450`
 - **Light:** background `#f8f9fa`/`#fcfcfc`, foreground `#5c6166`, orange accent `#f29718`
 - Semantic tokens (info, success, warning, destructive) mapped to their Ayu palette equivalents. Light theme unchanged visually for non-dark users.
