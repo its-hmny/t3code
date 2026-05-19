@@ -18,11 +18,17 @@ import {
 } from "../diffRouteSearch";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { RIGHT_PANEL_INLINE_LAYOUT_MEDIA_QUERY } from "../rightPanelLayout";
-import { selectEnvironmentState, selectThreadExistsByRef, useStore } from "../store";
+import {
+  selectEnvironmentState,
+  selectProjectByRef,
+  selectThreadExistsByRef,
+  useStore,
+} from "../store";
 import { createThreadSelectorByRef } from "../storeSelectors";
 import { resolveThreadRouteRef, buildThreadRouteParams } from "../threadRoutes";
 import { RightPanelSheet } from "../components/RightPanelSheet";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarRail } from "~/components/ui/sidebar";
+import { APP_DISPLAY_NAME } from "../branding";
 
 const DiffPanel = lazy(() => import("../components/DiffPanel"));
 const DIFF_INLINE_SIDEBAR_WIDTH_STORAGE_KEY = "chat_diff_sidebar_width";
@@ -149,6 +155,15 @@ function ChatThreadRouteView() {
   );
   const serverThread = useStore(useMemo(() => createThreadSelectorByRef(threadRef), [threadRef]));
   const threadExists = useStore((store) => selectThreadExistsByRef(store, threadRef));
+  const projectName = useStore((store) => {
+    if (!threadRef || !serverThread?.projectId) return null;
+    return (
+      selectProjectByRef(store, {
+        environmentId: threadRef.environmentId,
+        projectId: serverThread.projectId,
+      })?.name ?? null
+    );
+  });
   const environmentHasServerThreads = useStore(
     (store) => selectEnvironmentState(store, threadRef?.environmentId ?? null).threadIds.length > 0,
   );
@@ -230,6 +245,14 @@ function ChatThreadRouteView() {
     }
     finalizePromotedDraftThreadByRef(threadRef);
   }, [draftThread?.promotedTo, serverThreadStarted, threadRef]);
+
+  useEffect(() => {
+    if (!projectName) return;
+    document.title = `${projectName} — ${APP_DISPLAY_NAME}`;
+    return () => {
+      document.title = APP_DISPLAY_NAME;
+    };
+  }, [projectName]);
 
   if (!threadRef || !bootstrapComplete || !routeThreadExists) {
     return null;
