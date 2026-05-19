@@ -2082,7 +2082,13 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
               }`}
             />
           )}
-          <ProjectFavicon environmentId={project.environmentId} cwd={project.cwd} {...(representativeCustomization !== undefined ? { customization: representativeCustomization } : {})} />
+          <ProjectFavicon
+            environmentId={project.environmentId}
+            cwd={project.cwd}
+            {...(representativeCustomization !== undefined
+              ? { customization: representativeCustomization }
+              : {})}
+          />
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <span className="truncate text-xs font-medium text-foreground/90">
               {project.displayName}
@@ -2330,13 +2336,18 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
                     style={
                       value
                         ? { backgroundColor: value }
-                        : { backgroundColor: "transparent", border: "2px dashed currentColor", color: "var(--muted-foreground)" }
+                        : {
+                            backgroundColor: "transparent",
+                            border: "2px dashed currentColor",
+                            color: "var(--muted-foreground)",
+                          }
                     }
                   />
                 ))}
               </div>
             </div>
-            {projectCustomizeTarget && projectCustomizations[projectCustomizeTarget.physicalProjectKey]?.color ? (
+            {projectCustomizeTarget &&
+            projectCustomizations[projectCustomizeTarget.physicalProjectKey]?.color ? (
               <button
                 type="button"
                 className="text-xs text-muted-foreground hover:text-destructive transition-colors"

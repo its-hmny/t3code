@@ -45,31 +45,18 @@ export function buildCopilotAcpSpawnInput(
 
 export const makeCopilotAcpRuntime = (
   input: CopilotAcpRuntimeInput,
-): Effect.Effect<
-  AcpSessionRuntimeShape,
-  EffectAcpErrors.AcpError,
-  Scope.Scope
-> =>
+): Effect.Effect<AcpSessionRuntimeShape, EffectAcpErrors.AcpError, Scope.Scope> =>
   Effect.gen(function* () {
     const acpContext = yield* Layer.build(
       AcpSessionRuntime.layer({
         ...input,
-        spawn: buildCopilotAcpSpawnInput(
-          input.copilotSettings,
-          input.cwd,
-          input.environment,
-        ),
+        spawn: buildCopilotAcpSpawnInput(input.copilotSettings, input.cwd, input.environment),
         authMethodId: "copilot_login",
       }).pipe(
         Layer.provide(
-          Layer.succeed(
-            ChildProcessSpawner.ChildProcessSpawner,
-            input.childProcessSpawner,
-          ),
+          Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, input.childProcessSpawner),
         ),
       ),
     );
-    return yield* Effect.service(AcpSessionRuntime).pipe(
-      Effect.provide(acpContext),
-    );
+    return yield* Effect.service(AcpSessionRuntime).pipe(Effect.provide(acpContext));
   });

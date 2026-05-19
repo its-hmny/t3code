@@ -49,10 +49,7 @@ export function useThreadCompletionNotifications(enabled: boolean): void {
     }
 
     const unsubscribe = useStore.subscribe((state) => {
-      if (
-        typeof Notification === "undefined" ||
-        Notification.permission !== "granted"
-      ) {
+      if (typeof Notification === "undefined" || Notification.permission !== "granted") {
         return;
       }
 

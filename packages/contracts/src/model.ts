@@ -4,12 +4,8 @@ import * as SchemaTransformation from "effect/SchemaTransformation";
 import { TrimmedNonEmptyString } from "./baseSchemas.ts";
 import { ProviderDriverKind } from "./providerInstance.ts";
 
-export const ProviderOptionDescriptorType = Schema.Literals([
-  "select",
-  "boolean",
-]);
-export type ProviderOptionDescriptorType =
-  typeof ProviderOptionDescriptorType.Type;
+export const ProviderOptionDescriptorType = Schema.Literals(["select", "boolean"]);
+export type ProviderOptionDescriptorType = typeof ProviderOptionDescriptorType.Type;
 
 export const ProviderOptionChoice = Schema.Struct({
   id: TrimmedNonEmptyString,
@@ -32,16 +28,14 @@ export const SelectProviderOptionDescriptor = Schema.Struct({
   currentValue: Schema.optional(TrimmedNonEmptyString),
   promptInjectedValues: Schema.optional(Schema.Array(TrimmedNonEmptyString)),
 });
-export type SelectProviderOptionDescriptor =
-  typeof SelectProviderOptionDescriptor.Type;
+export type SelectProviderOptionDescriptor = typeof SelectProviderOptionDescriptor.Type;
 
 export const BooleanProviderOptionDescriptor = Schema.Struct({
   ...ProviderOptionDescriptorBase,
   type: Schema.Literal("boolean"),
   currentValue: Schema.optional(Schema.Boolean),
 });
-export type BooleanProviderOptionDescriptor =
-  typeof BooleanProviderOptionDescriptor.Type;
+export type BooleanProviderOptionDescriptor = typeof BooleanProviderOptionDescriptor.Type;
 
 export const ProviderOptionDescriptor = Schema.Union([
   SelectProviderOptionDescriptor,
@@ -49,12 +43,8 @@ export const ProviderOptionDescriptor = Schema.Union([
 ]);
 export type ProviderOptionDescriptor = typeof ProviderOptionDescriptor.Type;
 
-export const ProviderOptionSelectionValue = Schema.Union([
-  TrimmedNonEmptyString,
-  Schema.Boolean,
-]);
-export type ProviderOptionSelectionValue =
-  typeof ProviderOptionSelectionValue.Type;
+export const ProviderOptionSelectionValue = Schema.Union([TrimmedNonEmptyString, Schema.Boolean]);
+export type ProviderOptionSelectionValue = typeof ProviderOptionSelectionValue.Type;
 
 export const ProviderOptionSelection = Schema.Struct({
   id: TrimmedNonEmptyString,
@@ -73,23 +63,17 @@ export type ProviderOptionSelection = typeof ProviderOptionSelection.Type;
  *   - SQLite databases that have not yet run migration 026,
  *   - any future regression that re-introduces the legacy shape.
  */
-const LegacyProviderOptionSelectionsObject = Schema.Record(
-  Schema.String,
-  Schema.Unknown,
-);
+const LegacyProviderOptionSelectionsObject = Schema.Record(Schema.String, Schema.Unknown);
 
-const ProviderOptionSelectionsFromLegacyObject =
-  LegacyProviderOptionSelectionsObject.pipe(
-    Schema.decodeTo(
-      Schema.Array(ProviderOptionSelection),
-      SchemaTransformation.transformOrFail({
-        decode: (record) =>
-          Effect.succeed(coerceLegacyOptionsObjectToArray(record)),
-        encode: (selections) =>
-          Effect.succeed(canonicalSelectionsToLegacyObject(selections)),
-      }),
-    ),
-  );
+const ProviderOptionSelectionsFromLegacyObject = LegacyProviderOptionSelectionsObject.pipe(
+  Schema.decodeTo(
+    Schema.Array(ProviderOptionSelection),
+    SchemaTransformation.transformOrFail({
+      decode: (record) => Effect.succeed(coerceLegacyOptionsObjectToArray(record)),
+      encode: (selections) => Effect.succeed(canonicalSelectionsToLegacyObject(selections)),
+    }),
+  ),
+);
 
 /**
  * Schema for the `options` field of every `ModelSelection` variant.
@@ -152,9 +136,7 @@ const COPILOT_DRIVER_KIND = ProviderDriverKind.make("copilot");
 export const DEFAULT_MODEL = "gpt-5.4";
 export const DEFAULT_GIT_TEXT_GENERATION_MODEL = "gpt-5.4-mini";
 
-export const DEFAULT_MODEL_BY_PROVIDER: Partial<
-  Record<ProviderDriverKind, string>
-> = {
+export const DEFAULT_MODEL_BY_PROVIDER: Partial<Record<ProviderDriverKind, string>> = {
   [CODEX_DRIVER_KIND]: DEFAULT_MODEL,
   [CLAUDE_DRIVER_KIND]: "claude-sonnet-4-6",
   [CURSOR_DRIVER_KIND]: "auto",
@@ -219,9 +201,7 @@ export const MODEL_SLUG_ALIASES_BY_PROVIDER: Partial<
 
 // ── Provider display names ────────────────────────────────────────────
 
-export const PROVIDER_DISPLAY_NAMES: Partial<
-  Record<ProviderDriverKind, string>
-> = {
+export const PROVIDER_DISPLAY_NAMES: Partial<Record<ProviderDriverKind, string>> = {
   [CODEX_DRIVER_KIND]: "Codex",
   [CLAUDE_DRIVER_KIND]: "Claude",
   [CURSOR_DRIVER_KIND]: "Cursor",

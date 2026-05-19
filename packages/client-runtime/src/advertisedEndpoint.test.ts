@@ -16,30 +16,19 @@ const coreProvider = {
 
 describe("advertised endpoint helpers", () => {
   it("normalizes HTTP and WebSocket base URLs", () => {
-    expect(normalizeHttpBaseUrl("https://example.com/path?x=1#hash")).toBe(
-      "https://example.com/",
-    );
-    expect(normalizeHttpBaseUrl("wss://example.com/socket")).toBe(
-      "https://example.com/",
-    );
-    expect(deriveWsBaseUrl("https://example.com/api")).toBe(
-      "wss://example.com/",
-    );
-    expect(deriveWsBaseUrl("http://127.0.0.1:3773")).toBe(
-      "ws://127.0.0.1:3773/",
-    );
+    expect(normalizeHttpBaseUrl("https://example.com/path?x=1#hash")).toBe("https://example.com/");
+    expect(normalizeHttpBaseUrl("wss://example.com/socket")).toBe("https://example.com/");
+    expect(deriveWsBaseUrl("https://example.com/api")).toBe("wss://example.com/");
+    expect(deriveWsBaseUrl("http://127.0.0.1:3773")).toBe("ws://127.0.0.1:3773/");
   });
 
   it("marks HTTP endpoints as blocked from hosted HTTPS apps", () => {
     expect(classifyHostedHttpsCompatibility("http://192.168.1.44:3773")).toBe(
       "mixed-content-blocked",
     );
-    expect(
-      classifyHostedHttpsCompatibility(
-        "https://desktop.example.com",
-        "compatible",
-      ),
-    ).toBe("compatible");
+    expect(classifyHostedHttpsCompatibility("https://desktop.example.com", "compatible")).toBe(
+      "compatible",
+    );
   });
 
   it("creates provider-neutral endpoint records", () => {

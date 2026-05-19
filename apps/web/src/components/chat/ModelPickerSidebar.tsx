@@ -97,18 +97,14 @@ export const ModelPickerSidebar = memo(function ModelPickerSidebar(props: {
                     <button
                       className={cn(
                         "relative isolate flex w-full cursor-pointer aspect-square items-center justify-center rounded transition-colors hover:bg-muted",
-                        props.selectedInstanceId === "favorites" &&
-                          SELECTED_BUTTON_CLASS,
+                        props.selectedInstanceId === "favorites" && SELECTED_BUTTON_CLASS,
                       )}
                       onClick={() => handleSelect("favorites")}
                       type="button"
                       data-model-picker-provider="favorites"
                       aria-label="Favorites"
                     >
-                      <StarIcon
-                        className="size-5 fill-current shrink-0"
-                        aria-hidden
-                      />
+                      <StarIcon className="size-5 fill-current shrink-0" aria-hidden />
                     </button>
                   }
                 />
@@ -128,11 +124,9 @@ export const ModelPickerSidebar = memo(function ModelPickerSidebar(props: {
         {props.instanceEntries.map((entry) => {
           const isDisabled = !entry.isAvailable || entry.status !== "ready";
           const isSelected = props.selectedInstanceId === entry.instanceId;
-          const showNewBadge =
-            props.newBadgeInstanceIds?.has(entry.instanceId) ?? false;
+          const showNewBadge = props.newBadgeInstanceIds?.has(entry.instanceId) ?? false;
           const showInstanceBadge =
-            Boolean(entry.accentColor) ||
-            (duplicateDriverCounts.get(entry.driverKind) ?? 0) > 1;
+            Boolean(entry.accentColor) || (duplicateDriverCounts.get(entry.driverKind) ?? 0) > 1;
 
           const tooltip = isDisabled
             ? describeUnavailableInstance(entry)
@@ -146,8 +140,7 @@ export const ModelPickerSidebar = memo(function ModelPickerSidebar(props: {
               className={cn(
                 "relative isolate flex w-full cursor-pointer aspect-square items-center justify-center rounded transition-colors hover:bg-muted",
                 isSelected && SELECTED_BUTTON_CLASS,
-                isDisabled &&
-                  "opacity-50 cursor-not-allowed hover:bg-transparent",
+                isDisabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
               )}
               data-provider-accent-color={entry.accentColor}
               onClick={() => !isDisabled && handleSelect(entry.instanceId)}
@@ -216,10 +209,7 @@ export const ModelPickerSidebar = memo(function ModelPickerSidebar(props: {
                       data-model-picker-provider="gemini-coming-soon"
                       aria-label="Gemini — coming soon"
                     >
-                      <Gemini
-                        className="size-5 text-muted-foreground/85"
-                        aria-hidden
-                      />
+                      <Gemini className="size-5 text-muted-foreground/85" aria-hidden />
                       <span className={SOON_BADGE_CLASS} aria-hidden>
                         <Clock3Icon className="size-2" />
                       </span>

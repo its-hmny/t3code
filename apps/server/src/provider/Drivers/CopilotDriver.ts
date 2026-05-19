@@ -6,11 +6,7 @@
  *
  * @module provider/Drivers/CopilotDriver
  */
-import {
-  CopilotSettings,
-  ProviderDriverKind,
-  type ServerProvider,
-} from "@t3tools/contracts";
+import { CopilotSettings, ProviderDriverKind, type ServerProvider } from "@t3tools/contracts";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -83,125 +79,94 @@ const withInstanceIdentity =
     continuation: { groupKey: input.continuationGroupKey },
   });
 
-export const CopilotDriver: ProviderDriver<CopilotSettings, CopilotDriverEnv> =
-  {
-    driverKind: DRIVER_KIND,
-    metadata: {
-      displayName: "GitHub Copilot",
-      supportsMultipleInstances: true,
-    },
-    configSchema: CopilotSettings,
-    defaultConfig: (): CopilotSettings => decodeCopilotSettings({}),
-    create: ({
-      instanceId,
-      displayName,
-      accentColor,
-      environment,
-      enabled,
-      config,
-    }) =>
-      Effect.gen(function* () {
-        const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-        const fileSystem = yield* FileSystem.FileSystem;
-        const path = yield* Path.Path;
-        const httpClient = yield* HttpClient.HttpClient;
-        const eventLoggers = yield* ProviderEventLoggers;
-        const processEnv = mergeProviderInstanceEnvironment(environment);
-        const continuationIdentity = defaultProviderContinuationIdentity({
-          driverKind: DRIVER_KIND,
-          instanceId,
-        });
-        const stampIdentity = withInstanceIdentity({
-          instanceId,
-          displayName,
-          accentColor,
-          continuationGroupKey: continuationIdentity.continuationKey,
-        });
-        const effectiveConfig = {
-          ...config,
-          enabled,
-        } satisfies CopilotSettings;
-        const maintenanceCapabilities =
-          yield* resolveProviderMaintenanceCapabilitiesEffect(UPDATE, {
-            binaryPath: effectiveConfig.binaryPath,
-            env: processEnv,
-          });
+export const CopilotDriver: ProviderDriver<CopilotSettings, CopilotDriverEnv> = {
+  driverKind: DRIVER_KIND,
+  metadata: {
+    displayName: "GitHub Copilot",
+    supportsMultipleInstances: true,
+  },
+  configSchema: CopilotSettings,
+  defaultConfig: (): CopilotSettings => decodeCopilotSettings({}),
+  create: ({ instanceId, displayName, accentColor, environment, enabled, config }) =>
+    Effect.gen(function* () {
+      const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+      const fileSystem = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const httpClient = yield* HttpClient.HttpClient;
+      const eventLoggers = yield* ProviderEventLoggers;
+      const processEnv = mergeProviderInstanceEnvironment(environment);
+      const continuationIdentity = defaultProviderContinuationIdentity({
+        driverKind: DRIVER_KIND,
+        instanceId,
+      });
+      const stampIdentity = withInstanceIdentity({
+        instanceId,
+        displayName,
+        accentColor,
+        continuationGroupKey: continuationIdentity.continuationKey,
+      });
+      const effectiveConfig = {
+        ...config,
+        enabled,
+      } satisfies CopilotSettings;
+      const maintenanceCapabilities = yield* resolveProviderMaintenanceCapabilitiesEffect(UPDATE, {
+        binaryPath: effectiveConfig.binaryPath,
+        env: processEnv,
+      });
 
-        const adapter = yield* makeCopilotAdapter(effectiveConfig, {
-          environment: processEnv,
-          ...(eventLoggers.native
-            ? { nativeEventLogger: eventLoggers.native }
-            : {}),
-          instanceId,
-        });
-        const textGeneration = yield* makeCopilotTextGeneration(
-          effectiveConfig,
-          processEnv,
-        );
+      const adapter = yield* makeCopilotAdapter(effectiveConfig, {
+        environment: processEnv,
+        ...(eventLoggers.native ? { nativeEventLogger: eventLoggers.native } : {}),
+        instanceId,
+      });
+      const textGeneration = yield* makeCopilotTextGeneration(effectiveConfig, processEnv);
 
-        const checkProvider = checkCopilotProviderStatus(
-          effectiveConfig,
-          processEnv,
-        ).pipe(
-          Effect.map(stampIdentity),
-          Effect.provideService(
-            ChildProcessSpawner.ChildProcessSpawner,
-            spawner,
-          ),
-        );
+      const checkProvider = checkCopilotProviderStatus(effectiveConfig, processEnv).pipe(
+        Effect.map(stampIdentity),
+        Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
+      );
 
-        const snapshot = yield* makeManagedServerProvider<CopilotSettings>({
-          maintenanceCapabilities,
-          getSettings: Effect.succeed(effectiveConfig),
-          streamSettings: Stream.never,
-          haveSettingsChanged: () => false,
-          initialSnapshot: (settings) =>
-            buildInitialCopilotProviderSnapshot(settings).pipe(
-              Effect.map(stampIdentity),
-            ),
-          checkProvider,
-          enrichSnapshot: ({
+      const snapshot = yield* makeManagedServerProvider<CopilotSettings>({
+        maintenanceCapabilities,
+        getSettings: Effect.succeed(effectiveConfig),
+        streamSettings: Stream.never,
+        haveSettingsChanged: () => false,
+        initialSnapshot: (settings) =>
+          buildInitialCopilotProviderSnapshot(settings).pipe(Effect.map(stampIdentity)),
+        checkProvider,
+        enrichSnapshot: ({ settings, snapshot: currentSnapshot, publishSnapshot }) =>
+          enrichCopilotSnapshot({
             settings,
+            environment: processEnv,
             snapshot: currentSnapshot,
+            maintenanceCapabilities,
             publishSnapshot,
-          }) =>
-            enrichCopilotSnapshot({
-              settings,
-              environment: processEnv,
-              snapshot: currentSnapshot,
-              maintenanceCapabilities,
-              publishSnapshot,
-              stampIdentity,
-              httpClient,
-            }).pipe(
-              Effect.provideService(
-                ChildProcessSpawner.ChildProcessSpawner,
-                spawner,
-              ),
-            ),
-          refreshInterval: SNAPSHOT_REFRESH_INTERVAL,
-        }).pipe(
-          Effect.mapError(
-            (cause) =>
-              new ProviderDriverError({
-                driver: DRIVER_KIND,
-                instanceId,
-                detail: `Failed to build Copilot snapshot: ${cause.message ?? String(cause)}`,
-                cause,
-              }),
-          ),
-        );
+            stampIdentity,
+            httpClient,
+          }).pipe(Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner)),
+        refreshInterval: SNAPSHOT_REFRESH_INTERVAL,
+      }).pipe(
+        Effect.mapError(
+          (cause) =>
+            new ProviderDriverError({
+              driver: DRIVER_KIND,
+              instanceId,
+              detail: `Failed to build Copilot snapshot: ${cause.message ?? String(cause)}`,
+              cause,
+            }),
+        ),
+      );
 
-        return {
-          instanceId,
-          driverKind: DRIVER_KIND,
-          continuationIdentity,
-          displayName,
-          accentColor,
-          enabled,
-          snapshot,
-          adapter,
-          textGeneration,
-        } satisfies ProviderInstance;
-      }),
-  };
+      return {
+        instanceId,
+        driverKind: DRIVER_KIND,
+        continuationIdentity,
+        displayName,
+        accentColor,
+        enabled,
+        snapshot,
+        adapter,
+        textGeneration,
+      } satisfies ProviderInstance;
+    }),
+};

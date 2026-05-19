@@ -45,10 +45,7 @@ import {
   ProviderAdapterSessionNotFoundError,
   ProviderAdapterValidationError,
 } from "../Errors.ts";
-import {
-  acpPermissionOutcome,
-  mapAcpToAdapterError,
-} from "../acp/AcpAdapterSupport.ts";
+import { acpPermissionOutcome, mapAcpToAdapterError } from "../acp/AcpAdapterSupport.ts";
 import { type AcpSessionRuntimeShape } from "../acp/AcpSessionRuntime.ts";
 import {
   makeAcpAssistantItemEvent,
@@ -66,29 +63,18 @@ import {
 import { makeAcpNativeLoggers } from "../acp/AcpNativeLogging.ts";
 import { makeCopilotAcpRuntime } from "../acp/CopilotAcpSupport.ts";
 import { type CopilotAdapterShape } from "../Services/CopilotAdapter.ts";
-import {
-  type EventNdjsonLogger,
-  makeEventNdjsonLogger,
-} from "./EventNdjsonLogger.ts";
+import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
 
 const PROVIDER = ProviderDriverKind.make("copilot");
 const COPILOT_RESUME_VERSION = 1 as const;
 
 const ACP_PLAN_MODE_ALIASES = ["plan", "architect"];
-const ACP_IMPLEMENT_MODE_ALIASES = [
-  "code",
-  "agent",
-  "default",
-  "chat",
-  "implement",
-];
+const ACP_IMPLEMENT_MODE_ALIASES = ["code", "agent", "default", "chat", "implement"];
 const ACP_APPROVAL_MODE_ALIASES = ["ask"];
 
 function normalizeModeSearchText(mode: AcpSessionMode): string {
   return [mode.id, mode.name, mode.description]
-    .filter(
-      (value): value is string => typeof value === "string" && value.length > 0,
-    )
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
     .join(" ")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
@@ -109,9 +95,7 @@ function findModeByAliases(
     if (exact) return exact;
   }
   for (const alias of normalizedAliases) {
-    const partial = modes.find((mode) =>
-      normalizeModeSearchText(mode).includes(alias),
-    );
+    const partial = modes.find((mode) => normalizeModeSearchText(mode).includes(alias));
     if (partial) return partial;
   }
   return undefined;
@@ -130,26 +114,21 @@ function resolveRequestedModeId(input: {
   if (!modeState) return undefined;
 
   if (input.interactionMode === "plan") {
-    return findModeByAliases(modeState.availableModes, ACP_PLAN_MODE_ALIASES)
-      ?.id;
+    return findModeByAliases(modeState.availableModes, ACP_PLAN_MODE_ALIASES)?.id;
   }
 
   if (input.runtimeMode === "approval-required") {
     return (
-      findModeByAliases(modeState.availableModes, ACP_APPROVAL_MODE_ALIASES)
-        ?.id ??
-      findModeByAliases(modeState.availableModes, ACP_IMPLEMENT_MODE_ALIASES)
-        ?.id ??
+      findModeByAliases(modeState.availableModes, ACP_APPROVAL_MODE_ALIASES)?.id ??
+      findModeByAliases(modeState.availableModes, ACP_IMPLEMENT_MODE_ALIASES)?.id ??
       modeState.availableModes.find((mode) => !isPlanMode(mode))?.id ??
       modeState.currentModeId
     );
   }
 
   return (
-    findModeByAliases(modeState.availableModes, ACP_IMPLEMENT_MODE_ALIASES)
-      ?.id ??
-    findModeByAliases(modeState.availableModes, ACP_APPROVAL_MODE_ALIASES)
-      ?.id ??
+    findModeByAliases(modeState.availableModes, ACP_IMPLEMENT_MODE_ALIASES)?.id ??
+    findModeByAliases(modeState.availableModes, ACP_APPROVAL_MODE_ALIASES)?.id ??
     modeState.availableModes.find((mode) => !isPlanMode(mode))?.id ??
     modeState.currentModeId
   );
@@ -162,21 +141,14 @@ function applyRequestedSessionConfiguration<E>(input: {
   readonly model: string | undefined;
   readonly mapError: (context: {
     readonly cause: import("effect-acp/errors").AcpError;
-    readonly method:
-      | "session/set_config_option"
-      | "session/set_mode"
-      | "session/set_model";
+    readonly method: "session/set_config_option" | "session/set_mode" | "session/set_model";
   }) => E;
 }): Effect.Effect<void, E> {
   return Effect.gen(function* () {
     if (input.model) {
       yield* input.runtime
         .setModel(input.model)
-        .pipe(
-          Effect.mapError((cause) =>
-            input.mapError({ cause, method: "session/set_model" }),
-          ),
-        );
+        .pipe(Effect.mapError((cause) => input.mapError({ cause, method: "session/set_model" })));
     }
 
     const requestedModeId = resolveRequestedModeId({
@@ -188,33 +160,19 @@ function applyRequestedSessionConfiguration<E>(input: {
 
     yield* input.runtime
       .setMode(requestedModeId)
-      .pipe(
-        Effect.mapError((cause) =>
-          input.mapError({ cause, method: "session/set_mode" }),
-        ),
-      );
+      .pipe(Effect.mapError((cause) => input.mapError({ cause, method: "session/set_mode" })));
   });
 }
 
 function selectAutoApprovedPermissionOption(
   request: EffectAcpSchema.RequestPermissionRequest,
 ): string | undefined {
-  const allowAlwaysOption = request.options.find(
-    (option) => option.kind === "allow_always",
-  );
-  if (
-    typeof allowAlwaysOption?.optionId === "string" &&
-    allowAlwaysOption.optionId.trim()
-  ) {
+  const allowAlwaysOption = request.options.find((option) => option.kind === "allow_always");
+  if (typeof allowAlwaysOption?.optionId === "string" && allowAlwaysOption.optionId.trim()) {
     return allowAlwaysOption.optionId.trim();
   }
-  const allowOnceOption = request.options.find(
-    (option) => option.kind === "allow_once",
-  );
-  if (
-    typeof allowOnceOption?.optionId === "string" &&
-    allowOnceOption.optionId.trim()
-  ) {
+  const allowOnceOption = request.options.find((option) => option.kind === "allow_once");
+  if (typeof allowOnceOption?.optionId === "string" && allowOnceOption.optionId.trim()) {
     return allowOnceOption.optionId.trim();
   }
   return undefined;
@@ -225,8 +183,7 @@ function settlePendingApprovalsAsCancelled(
 ): Effect.Effect<void> {
   return Effect.forEach(
     Array.from(pendingApprovals.values()),
-    (pending) =>
-      Deferred.succeed(pending.decision, "cancel").pipe(Effect.ignore),
+    (pending) => Deferred.succeed(pending.decision, "cancel").pipe(Effect.ignore),
     { discard: true },
   );
 }
@@ -242,12 +199,10 @@ function settlePendingUserInputsAsEmptyAnswers(
 }
 
 function parseCopilotResume(raw: unknown): { sessionId: string } | undefined {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw))
-    return undefined;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return undefined;
   const record = raw as Record<string, unknown>;
   if (record.schemaVersion !== COPILOT_RESUME_VERSION) return undefined;
-  if (typeof record.sessionId !== "string" || !record.sessionId.trim())
-    return undefined;
+  if (typeof record.sessionId !== "string" || !record.sessionId.trim()) return undefined;
   return { sessionId: record.sessionId.trim() };
 }
 
@@ -286,8 +241,7 @@ export function makeCopilotAdapter(
   options?: CopilotAdapterLiveOptions,
 ) {
   return Effect.gen(function* () {
-    const boundInstanceId =
-      options?.instanceId ?? ProviderInstanceId.make("copilot");
+    const boundInstanceId = options?.instanceId ?? ProviderInstanceId.make("copilot");
     const fileSystem = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
     const childProcessSpawner = yield* ChildProcessSpawner.ChildProcessSpawner;
@@ -303,15 +257,12 @@ export function makeCopilotAdapter(
       options?.nativeEventLogger === undefined ? nativeEventLogger : undefined;
 
     const sessions = new Map<ThreadId, CopilotSessionContext>();
-    const threadLocksRef = yield* SynchronizedRef.make(
-      new Map<string, Semaphore.Semaphore>(),
-    );
+    const threadLocksRef = yield* SynchronizedRef.make(new Map<string, Semaphore.Semaphore>());
     const runtimeEventPubSub = yield* PubSub.unbounded<ProviderRuntimeEvent>();
 
     const nowIso = Effect.map(DateTime.now, DateTime.formatIso);
     const nextEventId = Effect.map(Random.nextUUIDv4, (id) => EventId.make(id));
-    const makeEventStamp = () =>
-      Effect.all({ eventId: nextEventId, createdAt: nowIso });
+    const makeEventStamp = () => Effect.all({ eventId: nextEventId, createdAt: nowIso });
 
     const offerRuntimeEvent = (event: ProviderRuntimeEvent) =>
       PubSub.publish(runtimeEventPubSub, event).pipe(Effect.asVoid);
@@ -332,13 +283,8 @@ export function makeCopilotAdapter(
         });
       });
 
-    const withThreadLock = <A, E, R>(
-      threadId: string,
-      effect: Effect.Effect<A, E, R>,
-    ) =>
-      Effect.flatMap(getThreadSemaphore(threadId), (semaphore) =>
-        semaphore.withPermit(effect),
-      );
+    const withThreadLock = <A, E, R>(threadId: string, effect: Effect.Effect<A, E, R>) =>
+      Effect.flatMap(getThreadSemaphore(threadId), (semaphore) => semaphore.withPermit(effect));
 
     const emitPlanUpdate = (
       ctx: CopilotSessionContext,
@@ -374,10 +320,7 @@ export function makeCopilotAdapter(
 
     const requireSession = (
       threadId: ThreadId,
-    ): Effect.Effect<
-      CopilotSessionContext,
-      ProviderAdapterSessionNotFoundError
-    > => {
+    ): Effect.Effect<CopilotSessionContext, ProviderAdapterSessionNotFoundError> => {
       const ctx = sessions.get(threadId);
       if (!ctx || ctx.stopped) {
         return Effect.fail(
@@ -431,34 +374,22 @@ export function makeCopilotAdapter(
 
           const cwd = path.resolve(input.cwd.trim());
           const copilotModelSelection =
-            input.modelSelection?.instanceId === boundInstanceId
-              ? input.modelSelection
-              : undefined;
+            input.modelSelection?.instanceId === boundInstanceId ? input.modelSelection : undefined;
           const existing = sessions.get(input.threadId);
           if (existing && !existing.stopped) {
             yield* stopSessionInternal(existing);
           }
 
-          const pendingApprovals = new Map<
-            ApprovalRequestId,
-            PendingApproval
-          >();
-          const pendingUserInputs = new Map<
-            ApprovalRequestId,
-            PendingUserInput
-          >();
+          const pendingApprovals = new Map<ApprovalRequestId, PendingApproval>();
+          const pendingUserInputs = new Map<ApprovalRequestId, PendingUserInput>();
           const sessionScope = yield* Scope.make("sequential");
           let sessionScopeTransferred = false;
           yield* Effect.addFinalizer(() =>
-            sessionScopeTransferred
-              ? Effect.void
-              : Scope.close(sessionScope, Exit.void),
+            sessionScopeTransferred ? Effect.void : Scope.close(sessionScope, Exit.void),
           );
           let ctx!: CopilotSessionContext;
 
-          const resumeSessionId = parseCopilotResume(
-            input.resumeCursor,
-          )?.sessionId;
+          const resumeSessionId = parseCopilotResume(input.resumeCursor)?.sessionId;
           const acpNativeLoggers = makeAcpNativeLoggers({
             nativeEventLogger,
             provider: PROVIDER,
@@ -467,9 +398,7 @@ export function makeCopilotAdapter(
 
           const acp = yield* makeCopilotAcpRuntime({
             copilotSettings,
-            ...(options?.environment
-              ? { environment: options.environment }
-              : {}),
+            ...(options?.environment ? { environment: options.environment } : {}),
             childProcessSpawner,
             cwd,
             ...(resumeSessionId ? { resumeSessionId } : {}),
@@ -492,8 +421,7 @@ export function makeCopilotAdapter(
             yield* acp.handleRequestPermission((params) =>
               Effect.gen(function* () {
                 if (input.runtimeMode === "full-access") {
-                  const autoApprovedOptionId =
-                    selectAutoApprovedPermissionOption(params);
+                  const autoApprovedOptionId = selectAutoApprovedPermissionOption(params);
                   if (autoApprovedOptionId !== undefined) {
                     return {
                       outcome: {
@@ -506,8 +434,7 @@ export function makeCopilotAdapter(
                 const permissionRequest = parsePermissionRequest(params);
                 const requestId = ApprovalRequestId.make(crypto.randomUUID());
                 const runtimeRequestId = RuntimeRequestId.make(requestId);
-                const decision =
-                  yield* Deferred.make<ProviderApprovalDecision>();
+                const decision = yield* Deferred.make<ProviderApprovalDecision>();
                 pendingApprovals.set(requestId, {
                   decision,
                   kind: permissionRequest.kind,
@@ -521,9 +448,7 @@ export function makeCopilotAdapter(
                     requestId: runtimeRequestId,
                     permissionRequest,
                     // @effect-diagnostics-next-line preferSchemaOverJson:off
-                    detail:
-                      permissionRequest.detail ??
-                      JSON.stringify(params).slice(0, 2000),
+                    detail: permissionRequest.detail ?? JSON.stringify(params).slice(0, 2000),
                     args: params,
                     source: "acp.jsonrpc",
                     method: "session/request_permission",
@@ -557,12 +482,7 @@ export function makeCopilotAdapter(
             return yield* acp.start();
           }).pipe(
             Effect.mapError((error) =>
-              mapAcpToAdapterError(
-                PROVIDER,
-                input.threadId,
-                "session/start",
-                error,
-              ),
+              mapAcpToAdapterError(PROVIDER, input.threadId, "session/start", error),
             ),
           );
 
@@ -713,9 +633,7 @@ export function makeCopilotAdapter(
         const ctx = yield* requireSession(input.threadId);
         const turnId = TurnId.make(crypto.randomUUID());
         const turnModelSelection =
-          input.modelSelection?.instanceId === boundInstanceId
-            ? input.modelSelection
-            : undefined;
+          input.modelSelection?.instanceId === boundInstanceId ? input.modelSelection : undefined;
         const model = turnModelSelection?.model ?? ctx.session.model;
 
         yield* applyRequestedSessionConfiguration({
@@ -792,12 +710,7 @@ export function makeCopilotAdapter(
           .prompt({ prompt: promptParts })
           .pipe(
             Effect.mapError((error) =>
-              mapAcpToAdapterError(
-                PROVIDER,
-                input.threadId,
-                "session/prompt",
-                error,
-              ),
+              mapAcpToAdapterError(PROVIDER, input.threadId, "session/prompt", error),
             ),
           );
 
@@ -819,8 +732,7 @@ export function makeCopilotAdapter(
           threadId: input.threadId,
           turnId,
           payload: {
-            state:
-              result.stopReason === "cancelled" ? "cancelled" : "completed",
+            state: result.stopReason === "cancelled" ? "cancelled" : "completed",
             stopReason: result.stopReason ?? null,
           },
         });
@@ -888,10 +800,7 @@ export function makeCopilotAdapter(
         return { threadId, turns: ctx.turns };
       });
 
-    const rollbackThread: CopilotAdapterShape["rollbackThread"] = (
-      threadId,
-      numTurns,
-    ) =>
+    const rollbackThread: CopilotAdapterShape["rollbackThread"] = (threadId, numTurns) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(threadId);
         if (!Number.isInteger(numTurns) || numTurns < 1) {
@@ -916,9 +825,7 @@ export function makeCopilotAdapter(
       );
 
     const listSessions: CopilotAdapterShape["listSessions"] = () =>
-      Effect.sync(() =>
-        Array.from(sessions.values(), (c) => ({ ...c.session })),
-      );
+      Effect.sync(() => Array.from(sessions.values(), (c) => ({ ...c.session })));
 
     const hasSession: CopilotAdapterShape["hasSession"] = (threadId) =>
       Effect.sync(() => {

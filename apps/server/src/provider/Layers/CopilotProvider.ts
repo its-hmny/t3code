@@ -62,9 +62,7 @@ export interface CopilotVersionResult {
  * Parse the output of `copilot version`.
  * Example: `GitHub Copilot CLI 1.0.45`
  */
-export function parseCopilotVersionOutput(
-  result: CommandResult,
-): CopilotVersionResult {
+export function parseCopilotVersionOutput(result: CommandResult): CopilotVersionResult {
   const combined = `${result.stdout}\n${result.stderr}`;
   const lowerOutput = combined.toLowerCase();
 
@@ -95,8 +93,7 @@ export function parseCopilotVersionOutput(
       version: null,
       status: "error",
       auth: { status: "unknown" },
-      message:
-        "GitHub Copilot CLI (`copilot`) is not installed or not on PATH.",
+      message: "GitHub Copilot CLI (`copilot`) is not installed or not on PATH.",
     };
   }
 
@@ -118,9 +115,7 @@ export function detectCopilotAuthFromEnvironment(
   environment: NodeJS.ProcessEnv,
 ): ServerProviderAuth {
   const token =
-    environment["COPILOT_GITHUB_TOKEN"] ??
-    environment["GH_TOKEN"] ??
-    environment["GITHUB_TOKEN"];
+    environment["COPILOT_GITHUB_TOKEN"] ?? environment["GH_TOKEN"] ?? environment["GITHUB_TOKEN"];
   if (token?.trim()) {
     return { status: "authenticated" };
   }
@@ -152,10 +147,7 @@ function flattenSelectOptions(
 }
 
 export function buildCopilotModelsFromConfigOptions(
-  configOptions:
-    | ReadonlyArray<import("effect-acp/schema").SessionConfigOption>
-    | null
-    | undefined,
+  configOptions: ReadonlyArray<import("effect-acp/schema").SessionConfigOption> | null | undefined,
 ): ReadonlyArray<ServerProviderModel> {
   if (!configOptions || configOptions.length === 0) {
     return [];
@@ -189,23 +181,13 @@ const makeCopilotAcpProbeRuntime = (
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
     const acpContext = yield* Layer.build(
       AcpSessionRuntime.layer({
-        spawn: buildCopilotAcpSpawnInput(
-          copilotSettings,
-          process.cwd(),
-          environment,
-        ),
+        spawn: buildCopilotAcpSpawnInput(copilotSettings, process.cwd(), environment),
         cwd: process.cwd(),
         clientInfo: { name: "t3-code-provider-probe", version: "0.0.0" },
         authMethodId: "copilot_login",
-      }).pipe(
-        Layer.provide(
-          Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner),
-        ),
-      ),
+      }).pipe(Layer.provide(Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner))),
     );
-    return yield* Effect.service(AcpSessionRuntime).pipe(
-      Effect.provide(acpContext),
-    );
+    return yield* Effect.service(AcpSessionRuntime).pipe(Effect.provide(acpContext));
   });
 
 const withCopilotAcpProbeRuntime = <A, E, R>(
@@ -226,9 +208,7 @@ export const discoverCopilotModelsViaAcp = (
     copilotSettings,
     (acp) =>
       Effect.map(acp.start(), (started) =>
-        buildCopilotModelsFromConfigOptions(
-          started.sessionSetupResult.configOptions ?? [],
-        ),
+        buildCopilotModelsFromConfigOptions(started.sessionSetupResult.configOptions ?? []),
       ),
     environment,
   );
@@ -236,12 +216,7 @@ export const discoverCopilotModelsViaAcp = (
 export function getCopilotFallbackModels(
   copilotSettings: Pick<CopilotSettings, "customModels">,
 ): ReadonlyArray<ServerProviderModel> {
-  return providerModelsFromSettings(
-    [],
-    PROVIDER,
-    copilotSettings.customModels,
-    EMPTY_CAPABILITIES,
-  );
+  return providerModelsFromSettings([], PROVIDER, copilotSettings.customModels, EMPTY_CAPABILITIES);
 }
 
 // ── Snapshot building ────────────────────────────────────────────────────────
@@ -272,13 +247,10 @@ export function buildCopilotProviderSnapshot(input: {
       EMPTY_CAPABILITIES,
     ),
     probe: {
-      installed:
-        input.parsed.status !== "error" || !message?.includes("not installed"),
+      installed: input.parsed.status !== "error" || !message?.includes("not installed"),
       version: input.parsed.version,
       status:
-        input.discoveryWarning && input.parsed.status === "ready"
-          ? "warning"
-          : input.parsed.status,
+        input.discoveryWarning && input.parsed.status === "ready" ? "warning" : input.parsed.status,
       auth,
       ...(message ? { message } : {}),
     },
@@ -348,16 +320,10 @@ const runCopilotVersionCommand = (
     return { stdout, stderr, code: exitCode } satisfies CommandResult;
   }).pipe(Effect.scoped);
 
-export const checkCopilotProviderStatus = Effect.fn(
-  "checkCopilotProviderStatus",
-)(function* (
+export const checkCopilotProviderStatus = Effect.fn("checkCopilotProviderStatus")(function* (
   copilotSettings: CopilotSettings,
   environment: NodeJS.ProcessEnv = process.env,
-): Effect.fn.Return<
-  ServerProviderDraft,
-  never,
-  ChildProcessSpawner.ChildProcessSpawner
-> {
+): Effect.fn.Return<ServerProviderDraft, never, ChildProcessSpawner.ChildProcessSpawner> {
   const checkedAt = DateTime.formatIso(yield* DateTime.now);
   const fallbackModels = getCopilotFallbackModels(copilotSettings);
 
@@ -377,10 +343,10 @@ export const checkCopilotProviderStatus = Effect.fn(
     });
   }
 
-  const versionProbe = yield* runCopilotVersionCommand(
-    copilotSettings,
-    environment,
-  ).pipe(Effect.timeoutOption(VERSION_TIMEOUT_MS), Effect.result);
+  const versionProbe = yield* runCopilotVersionCommand(copilotSettings, environment).pipe(
+    Effect.timeoutOption(VERSION_TIMEOUT_MS),
+    Effect.result,
+  );
 
   if (Result.isFailure(versionProbe)) {
     const error = versionProbe.failure;
@@ -412,8 +378,7 @@ export const checkCopilotProviderStatus = Effect.fn(
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message:
-          "GitHub Copilot CLI timed out while running `copilot version`.",
+        message: "GitHub Copilot CLI timed out while running `copilot version`.",
       },
     });
   }
@@ -452,9 +417,7 @@ export const enrichCopilotSnapshot = (input: {
   ).pipe(
     Effect.provideService(HttpClient.HttpClient, input.httpClient),
     Effect.flatMap((enrichedSnapshot) =>
-      publishSnapshot(stampIdentity(enrichedSnapshot)).pipe(
-        Effect.as(enrichedSnapshot),
-      ),
+      publishSnapshot(stampIdentity(enrichedSnapshot)).pipe(Effect.as(enrichedSnapshot)),
     ),
     Effect.catchCause((cause) =>
       Effect.logWarning("Copilot version advisory enrichment failed", {
@@ -472,9 +435,7 @@ export const enrichCopilotSnapshot = (input: {
       const nonCustomModels = baseSnapshot.models.filter((m) => !m.isCustom);
       const modelsNeedDiscovery =
         nonCustomModels.length === 0 ||
-        nonCustomModels.some(
-          (m) => (m.capabilities?.optionDescriptors?.length ?? 0) === 0,
-        );
+        nonCustomModels.some((m) => (m.capabilities?.optionDescriptors?.length ?? 0) === 0);
       if (!modelsNeedDiscovery) {
         return Effect.void;
       }
@@ -495,12 +456,9 @@ export const enrichCopilotSnapshot = (input: {
           );
         }),
         Effect.catchCause((cause) =>
-          Effect.logWarning(
-            "Copilot ACP background capability enrichment failed",
-            {
-              cause: Cause.pretty(cause),
-            },
-          ).pipe(Effect.asVoid),
+          Effect.logWarning("Copilot ACP background capability enrichment failed", {
+            cause: Cause.pretty(cause),
+          }).pipe(Effect.asVoid),
         ),
       );
     }),
