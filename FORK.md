@@ -116,7 +116,27 @@ git push origin main --force
 
 ---
 
-### Ayu theme (light + dark)
+### CI: switch to standard GitHub-hosted runners + fix test/typecheck failures
+
+**Commits:** `22a603e5` · `3319b18f`
+**Files modified:**
+
+- `.github/workflows/ci.yml` — replaced `blacksmith-*vcpu-ubuntu-2404` → `ubuntu-24.04`, `blacksmith-*vcpu-macos-26` → `macos-15`
+- `.github/workflows/mobile-eas-preview.yml` — same runner substitution
+- `.github/workflows/deploy-relay.yml` — same runner substitution
+- `.github/workflows/release.yml` — same runner substitution (linux/mac/windows matrix)
+- `apps/web/src/branding.ts` — `APP_DISPLAY_NAME` now appends `HOSTED_APP_CHANNEL_LABEL` (nightly/latest) when set
+- `apps/web/src/cloud/linkEnvironment.ts` — `decodedRelayClientError` strips raw `HttpClientError` from `CloudEnvironmentLinkError.cause` to avoid Effect hashing raw HTTP objects
+- `apps/web/src/cloud/linkEnvironment.test.ts` — transport-failure test uses HTTP 502 (not in `RelayEnvironmentLinkErrors`) instead of 503, avoiding `causeCombine` hashing of bun's GC-detached request-body `Uint8Array`
+- `apps/web/src/components/chat/MessagesTimeline.test.tsx` — pre-loads module in `beforeAll` with a 30 s timeout to avoid cold-import timeout on the default 15 s limit
+- `apps/server/src/provider/Layers/CopilotAdapter.ts` — fixed imports (`makeAcpNativeLoggerFactory`, `Crypto` service), use `crypto.randomUUIDv4`, add `mapExtensionFailure`, fix notification-fiber and finalizer error handling
+- `apps/server/src/provider/Drivers/CopilotDriver.ts` — added `Crypto.Crypto` to `CopilotDriverEnv` type
+- `packages/client-runtime/src/managedRelay.ts` — `relayClientError` now drops `HttpClientError` instances from `cause` to prevent bun GC-detached `ArrayBuffer` crashes when Effect hashes `Data.TaggedError` fields during `causeCombine` deduplication
+
+**Summary:** Migrates all CI workflows from the Blacksmith runner service to standard GitHub-hosted runners (`ubuntu-24.04`, `macos-15`, `windows-2025`). Alongside this, fixes a batch of test and typecheck failures that surfaced after the dependency install: formatting, a branding test, a React component import-timeout test, multiple TypeScript errors in `CopilotAdapter`/`CopilotDriver`, and a subtle bun-specific crash where Effect's structural hash walks into a GC-detached `ArrayBuffer` inside a sent HTTP request body.
+
+**Potential rebase conflicts:** Upstream changes to any of the workflow files or the files listed above will conflict.
+
 
 **Commits:** `78851f6d`
 **Files modified:**
