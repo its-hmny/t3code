@@ -153,7 +153,7 @@ git push origin main --force
 
 ### Docker Compose for local development
 
-**Commits:** TBD
+**Commits:** `161859cd` · `TBD` (fix build)
 **Files added:**
 
 - `Dockerfile` — multi-stage build (Node 24, pnpm, builds web + server bundle, deploys to slim runtime image)
