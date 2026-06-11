@@ -1,0 +1,33 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+
+# Build artifacts (these are rebuilt inside the container)
+apps/*/dist/
+packages/*/dist/
+infra/*/dist/
+
+# Mobile / Expo
+apps/mobile/.expo/
+apps/desktop/dist-electron/
+apps/desktop/out/
+
+# Editor and OS
+.DS_Store
+.vscode/
+*.swp
+*.swo
+
+# Test output
+coverage/
+
+# Vendored reference repos (not part of the application)
+.repos/
+
+# Local env files (may contain secrets)
+.env.local
+.env.*.local
+
+# Git
+.git/

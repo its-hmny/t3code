@@ -150,3 +150,16 @@ git push origin main --force
 - Semantic tokens (info, success, warning, destructive) mapped to their Ayu palette equivalents. Light theme unchanged visually for non-dark users.
 
 **Potential rebase conflicts:** Any upstream changes to `apps/web/src/index.css` (theme variables) will conflict directly.
+
+### Docker Compose for local development
+
+**Commits:** TBD
+**Files added:**
+
+- `Dockerfile` — multi-stage build (Node 24, pnpm, builds web + server bundle, deploys to slim runtime image)
+- `docker-compose.yml` — single `server` service with `restart: unless-stopped`, named volume for `T3CODE_HOME`, port 3773
+- `.dockerignore` — excludes `node_modules/`, build artifacts, `.repos/`, and editor files
+
+**Summary:** Adds `docker compose up --build` support for running the t3code server locally with automatic restart across reboots. The Dockerfile uses a two-stage build: the builder stage installs all workspace dependencies with pnpm, builds the web app, runs `apps/server/scripts/cli.ts build` (which bundles the server via `vp pack` and embeds the web client into `dist/client/`), then uses `pnpm deploy --prod` to produce a minimal standalone deployment. The runtime stage copies the deployment into a `node:24-slim` image. Data (sessions, settings, SQLite DB) is persisted in a named Docker volume. To mount your local projects into the container for agent access, uncomment the bind-mount section in `docker-compose.yml`.
+
+**Potential rebase conflicts:** These files are new — no upstream conflict expected unless the upstream adds its own Docker setup.

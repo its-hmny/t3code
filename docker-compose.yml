@@ -1,0 +1,33 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: t3code:local
+
+    restart: unless-stopped
+
+    ports:
+      - "${T3CODE_PORT:-3773}:3773"
+
+    environment:
+      T3CODE_HOME: /data
+      T3CODE_HOST: 0.0.0.0
+      T3CODE_PORT: "3773"
+      T3CODE_NO_BROWSER: "true"
+      T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false"
+
+    volumes:
+      # Persists sessions, settings, and the SQLite database across restarts
+      - t3-data:/data
+
+      # Optional: mount a directory from your host so the coding agents can
+      # work on your local projects. Uncomment and adjust the path as needed.
+      # - type: bind
+      #   source: ~/Projects
+      #   target: /projects
+      #   read_only: false
+
+volumes:
+  t3-data:
+    driver: local
