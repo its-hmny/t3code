@@ -725,13 +725,15 @@ describe("web cloud link environment client", () => {
 
   it.effect("preserves relay transport failures while linking environments", () =>
     Effect.gen(function* () {
+      // Use 502 (not registered in RelayEnvironmentLinkErrors) so Effect uses
+      // statusOrElse — avoids causeCombine hashing of bun's detached request body.
       vi.stubGlobal(
         "fetch",
         vi
           .fn()
           .mockResolvedValueOnce(Response.json(validChallenge()))
           .mockResolvedValueOnce(Response.json(validProof()))
-          .mockResolvedValueOnce(Response.json({ error: "unavailable" }, { status: 503 })),
+          .mockResolvedValueOnce(Response.json({ error: "bad_gateway" }, { status: 502 })),
       );
 
       const error = yield* withCloudServices(

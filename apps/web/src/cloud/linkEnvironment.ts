@@ -165,7 +165,10 @@ function decodedRelayClientError(message: string) {
     const detail = relayError ? relayProtectedErrorMessage(relayError) : null;
     return new CloudEnvironmentLinkError({
       message: detail ? `${message}: ${detail}` : message,
-      cause,
+      // Use only the decoded relay error as cause. Raw HTTP errors from Effect's
+      // HttpApiClient may contain Uint8Arrays backed by GC-detached ArrayBuffers
+      // (a bun runtime behaviour), which crash Effect's structural hash computation.
+      cause: relayError ?? undefined,
     });
   };
 }

@@ -36,6 +36,7 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as SynchronizedRef from "effect/SynchronizedRef";
 import type { HttpMethod } from "effect/unstable/http/HttpMethod";
+import { HttpClientError } from "effect/unstable/http";
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 export interface ManagedRelayDpopProofInput {
@@ -138,7 +139,16 @@ export class ManagedRelayClient extends Context.Service<
 >()("@t3tools/client-runtime/managedRelay/ManagedRelayClient") {}
 
 function relayClientError(message: string, cause?: unknown): ManagedRelayClientError {
-  return new ManagedRelayClientError({ message, ...(cause === undefined ? {} : { cause }) });
+  // HttpClientError instances contain raw HTTP response objects that may include a bun
+  // native Response with a detached ArrayBuffer. Effect hashes Data.TaggedError fields
+  // recursively, so storing HttpClientError in cause would crash when hashing. For
+  // HTTP errors, the typed error (e.g. RelayProtectedError) is passed directly — not
+  // wrapped in HttpClientError — so dropping it here loses no relay-specific context.
+  const safeCause = HttpClientError.isHttpClientError(cause) ? undefined : cause;
+  return new ManagedRelayClientError({
+    message,
+    ...(safeCause === undefined ? {} : { cause: safeCause }),
+  });
 }
 
 function timeoutRelayRequest(message: string) {
