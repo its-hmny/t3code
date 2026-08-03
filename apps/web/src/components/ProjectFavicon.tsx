@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import type { ProjectCustomization } from "@t3tools/contracts/settings";
 import {
   getProjectFaviconCacheKey,
   isProjectFaviconFallbackUrl,
@@ -16,12 +17,28 @@ export function ProjectFavicon(input: {
   cwd: string;
   className?: string | undefined;
   fallbackIcon?: ComponentType<{ className?: string }>;
+  customization?: ProjectCustomization;
 }) {
   const src = useAssetUrl(input.environmentId, {
     _tag: "project-favicon",
     cwd: input.cwd,
   });
   const FallbackIcon = input.fallbackIcon ?? FolderIcon;
+
+  // Custom color: render a colored dot swatch instead of the favicon.
+  if (input.customization?.color) {
+    return (
+      <span
+        className={`size-3.5 shrink-0 flex items-center justify-center ${input.className ?? ""}`}
+        aria-hidden="true"
+      >
+        <span
+          className="size-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: input.customization.color }}
+        />
+      </span>
+    );
+  }
 
   if (!src || isProjectFaviconFallbackUrl(src)) {
     return <ProjectFaviconFallback className={input.className} icon={FallbackIcon} />;
