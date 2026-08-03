@@ -9,12 +9,14 @@ import { resolveThreadSyncPhase } from "../threadSync";
 import { SidebarInset } from "~/components/ui/sidebar";
 import {
   useEnvironmentThreadRefs,
+  useProject,
   useThreadDetail,
   useThreadShell,
   useThreadStatus,
 } from "../state/entities";
 import { useEnvironmentQuery } from "../state/query";
 import { environmentShell } from "../state/shell";
+import { APP_DISPLAY_NAME } from "../branding";
 
 function ChatThreadRouteView() {
   const navigate = useNavigate();
@@ -56,6 +58,20 @@ function ChatThreadRouteView() {
   });
   const serverThreadStarted = threadHasStarted(serverThreadDetail);
   const environmentHasAnyThreads = environmentHasServerThreads || environmentHasDraftThreads;
+  const projectRef =
+    threadRef && serverThreadDetail?.projectId
+      ? { environmentId: threadRef.environmentId, projectId: serverThreadDetail.projectId }
+      : null;
+  const project = useProject(projectRef);
+  const projectName = project?.title ?? null;
+
+  useEffect(() => {
+    if (!projectName) return;
+    document.title = `${projectName} — ${APP_DISPLAY_NAME}`;
+    return () => {
+      document.title = APP_DISPLAY_NAME;
+    };
+  }, [projectName]);
 
   useEffect(() => {
     if (!threadRef || !bootstrapComplete) {
