@@ -19,9 +19,9 @@ export function formatAppDisplayName(input: {
  * v2 only exists in the client, so a stable client on a nightly server has
  * nothing to turn on.
  */
-export function resolveSidebarV2Default(stageLabel: string): boolean {
-  const stage = stageLabel.trim().toLowerCase();
-  return stage === "nightly" || stage === "dev";
+// Fork: always default sidebar v2 on regardless of build stage.
+export function resolveSidebarV2Default(_stageLabel: string): boolean {
+  return true;
 }
 
 /**

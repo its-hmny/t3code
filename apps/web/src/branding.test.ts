@@ -122,8 +122,9 @@ describe("resolveSidebarV2Default", () => {
     expect(resolveSidebarV2Default(stage)).toBe(true);
   });
 
-  it.each(["Alpha", "Latest", ""])("leaves the beta off for %s builds", (stage) => {
-    expect(resolveSidebarV2Default(stage)).toBe(false);
+  // Fork: sidebar v2 is on by default for all build stages.
+  it.each(["Alpha", "Latest", ""])("enables the beta for %s builds (fork default)", (stage) => {
+    expect(resolveSidebarV2Default(stage)).toBe(true);
   });
 });
 
@@ -155,6 +156,7 @@ describe("resolveSidebarV2Enabled", () => {
         stageLabel: "Nightly",
       }),
     ).toBe(true);
+    // Fork: sidebar v2 defaults on for all stages including Latest.
     expect(
       resolveSidebarV2Enabled({
         ...hydrated,
@@ -162,7 +164,7 @@ describe("resolveSidebarV2Enabled", () => {
         configuredByUser: false,
         stageLabel: "Latest",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("honors an explicit opt-out over the stage default", () => {
