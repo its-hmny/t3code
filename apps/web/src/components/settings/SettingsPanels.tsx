@@ -1109,6 +1109,19 @@ export function AppearanceSettingsPanel() {
             />
           }
         />
+        <SettingsRow
+          title="Thread completion notifications"
+          description="Show a native OS notification when a thread finishes working or needs your input."
+          control={
+            <Switch
+              checked={settings.notifyOnThreadCompletion}
+              onCheckedChange={(checked) =>
+                updateSettings({ notifyOnThreadCompletion: Boolean(checked) })
+              }
+              aria-label="Notify when a thread completes"
+            />
+          }
+        />
       </SettingsSection>
     </SettingsPageContainer>
   );

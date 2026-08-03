@@ -28,6 +28,7 @@ import {
 } from "../components/ui/toast";
 import { resolveAndPersistPreferredEditor } from "../editorPreferences";
 import { useClientSettings } from "../hooks/useSettings";
+import { useThreadCompletionNotifications } from "../hooks/useThreadCompletionNotifications";
 import {
   deriveLogicalProjectKeyFromSettings,
   derivePhysicalProjectKeyFromPath,
@@ -136,6 +137,7 @@ function RootRouteView() {
         <HostedStaticEnvironmentBootstrap />
         {primaryEnvironmentAuthenticated ? <EventRouter /> : null}
         {primaryEnvironmentAuthenticated ? <ProviderUpdateLaunchNotification /> : null}
+        {primaryEnvironmentAuthenticated ? <ThreadCompletionNotificationsBootstrap /> : null}
         {appShell}
       </AnchoredToastProvider>
     </ToastProvider>
@@ -414,5 +416,11 @@ function EventRouter() {
     handleServerConfigUpdated();
   }, [serverConfigEvent]);
 
+  return null;
+}
+
+function ThreadCompletionNotificationsBootstrap() {
+  const enabled = useClientSettings((s) => s.notifyOnThreadCompletion);
+  useThreadCompletionNotifications(enabled);
   return null;
 }
