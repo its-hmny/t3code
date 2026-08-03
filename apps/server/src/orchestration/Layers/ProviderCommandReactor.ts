@@ -1062,7 +1062,16 @@ const make = Effect.gen(function* () {
 
     const handleTurnStartFailure = (cause: Cause.Cause<unknown>) => {
       if (Cause.hasInterruptsOnly(cause)) {
-        return Effect.void;
+        // The sendTurn fiber was interrupted (e.g. scope closing). The
+        // turn.started event may have already been processed by the ingestion
+        // pipeline, leaving the thread's activeTurnId set in the DB. Clear it
+        // so the thread is not permanently stuck in the "running" state and
+        // subsequent turns can proceed normally.
+        return setThreadSessionErrorOnTurnStartFailure({
+          threadId: event.payload.threadId,
+          detail: "Turn was interrupted",
+          createdAt: event.payload.createdAt,
+        }).pipe(Effect.asVoid);
       }
       const detail = formatFailureDetail(cause);
       return setThreadSessionErrorOnTurnStartFailure({

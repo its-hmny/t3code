@@ -28,6 +28,7 @@ import { causeErrorTag } from "@t3tools/shared/observability";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
 import * as PubSub from "effect/PubSub";
 import * as Ref from "effect/Ref";
@@ -338,6 +339,17 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
               provider: adapter.provider,
             },
             event,
+          ).pipe(
+            Effect.catchCause((cause) =>
+              Cause.hasInterruptsOnly(cause)
+                ? Effect.failCause(cause)
+                : Effect.logError("ProviderService failed to process adapter runtime event", {
+                    instanceId: id,
+                    provider: adapter.provider,
+                    eventType: event.type,
+                    cause: Cause.pretty(cause),
+                  }),
+            ),
           ),
         ).pipe(Effect.forkScoped);
       }

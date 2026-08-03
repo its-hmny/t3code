@@ -13,6 +13,7 @@ import {
   TurnId,
 } from "@t3tools/contracts";
 import * as Crypto from "effect/Crypto";
+import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -873,8 +874,10 @@ export function makeGrokAdapter(grokSettings: GrokSettings, options?: GrokAdapte
               }),
             ),
           ).pipe(
-            Effect.catch((cause) =>
-              Effect.logError("Failed to process Grok runtime notification.", { cause }),
+            Effect.catchCause((cause) =>
+              Effect.logError("Failed to process Grok runtime notification.", {
+                cause: Cause.pretty(cause),
+              }),
             ),
             Effect.forkChild,
           );

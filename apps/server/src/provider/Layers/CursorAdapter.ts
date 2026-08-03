@@ -22,6 +22,7 @@ import {
   TurnId,
 } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
+import * as Cause from "effect/Cause";
 import * as Crypto from "effect/Crypto";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -871,8 +872,10 @@ export function makeCursorAdapter(
               }),
             ),
           ).pipe(
-            Effect.catch((cause) =>
-              Effect.logError("Failed to process Cursor runtime notification.", { cause }),
+            Effect.catchCause((cause) =>
+              Effect.logError("Failed to process Cursor runtime notification.", {
+                cause: Cause.pretty(cause),
+              }),
             ),
             Effect.forkChild,
           );
@@ -1152,8 +1155,10 @@ export function makeCursorAdapter(
 
     yield* Effect.addFinalizer(() =>
       Effect.forEach(sessions.values(), stopSessionInternal, { discard: true }).pipe(
-        Effect.catch((cause) =>
-          Effect.logError("Failed to emit Cursor session shutdown event.", { cause }),
+        Effect.catchCause((cause) =>
+          Effect.logError("Failed to emit Cursor session shutdown event.", {
+            cause: Cause.pretty(cause),
+          }),
         ),
         Effect.tap(() => PubSub.shutdown(runtimeEventPubSub)),
         Effect.tap(() => managedNativeEventLogger?.close() ?? Effect.void),
