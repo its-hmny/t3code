@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { normalizeProjectPathForComparison } from "@t3tools/client-runtime/state/projects";
 
 export const PERSISTED_STATE_KEY = "t3code:ui-state:v1";
+// Each tab keeps its own sidebar scope; the shared copy only seeds new tabs and app launches.
+const SESSION_PROJECT_SCOPE_KEY = "t3code:sidebar-project-scope:v1";
 const THREAD_CHANGED_FILES_EXPANSION_VERSION = 2;
 const LEGACY_PERSISTED_STATE_KEYS = [
   "t3code:renderer-state:v8",
@@ -160,10 +162,27 @@ export function parsePersistedState(parsed: PersistedUiState): UiState {
   };
 }
 
-function readPersistedState(): UiState {
+function readSessionProjectScopeKeys(): string[] | null {
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_PROJECT_SCOPE_KEY);
+    return raw === null ? null : sanitizeStringArray(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+export function readPersistedState(): UiState {
   if (typeof window === "undefined") {
     return initialState;
   }
+  const state = readSharedPersistedState();
+  const sessionProjectScopeKeys = readSessionProjectScopeKeys();
+  return sessionProjectScopeKeys === null
+    ? state
+    : { ...state, sidebarProjectScopeKeys: sessionProjectScopeKeys };
+}
+
+function readSharedPersistedState(): UiState {
   try {
     const raw = window.localStorage.getItem(PERSISTED_STATE_KEY);
     if (!raw) {
@@ -214,6 +233,12 @@ export function persistState(state: UiState): void {
   if (typeof window === "undefined") {
     return;
   }
+  try {
+    window.sessionStorage.setItem(
+      SESSION_PROJECT_SCOPE_KEY,
+      JSON.stringify(state.sidebarProjectScopeKeys),
+    );
+  } catch {}
   try {
     const projectExpandedById = Object.fromEntries(
       Object.entries(state.projectExpandedById).filter(

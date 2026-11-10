@@ -9,6 +9,7 @@ import {
   PERSISTED_STATE_KEY,
   type PersistedUiState,
   persistState,
+  readPersistedState,
   reorderProjects,
   resolveProjectExpanded,
   setProjectExpanded,
@@ -246,15 +247,23 @@ describe("uiStateStore persistence", () => {
     });
   });
 
-  it("restores the sidebar project scope across reloads", () => {
-    const keys = ["github.com/pingdotgg/t3code", "github.com/pingdotgg/uploadthing"];
-    persistState(makeUiState({ sidebarProjectScopeKeys: keys }));
+  it("restores each tab's own sidebar project scope across reloads", () => {
+    const tabA = createLocalStorageStub();
+    const tabB = createLocalStorageStub();
+    const keysA = ["github.com/pingdotgg/t3code", "github.com/pingdotgg/uploadthing"];
+    const keysB = ["github.com/pingdotgg/lawn"];
+    const inTab = (sessionStorage: Storage) =>
+      vi.stubGlobal("window", { localStorage: localStorageStub, sessionStorage });
 
-    const persisted = JSON.parse(
-      localStorageStub.getItem(PERSISTED_STATE_KEY) ?? "{}",
-    ) as PersistedUiState;
+    inTab(tabA);
+    persistState(makeUiState({ sidebarProjectScopeKeys: keysA }));
+    inTab(tabB);
+    persistState(makeUiState({ sidebarProjectScopeKeys: keysB }));
 
-    expect(parsePersistedState(persisted).sidebarProjectScopeKeys).toEqual(keys);
+    inTab(tabA);
+    expect(readPersistedState().sidebarProjectScopeKeys).toEqual(keysA);
+    inTab(createLocalStorageStub());
+    expect(readPersistedState().sidebarProjectScopeKeys).toEqual(keysB);
   });
 
   it("keeps a single-project scope readable by older clients", () => {
